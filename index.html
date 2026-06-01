@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+    <title>同城匠师傅 - 上门维修服务</title>
+    <!-- 引入 Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background-color: #f7f8fa;
+            font-size: 14px;
+            color: #333;
+        }
+        .page-container {
+            display: none;
+        }
+        .page-container.active {
+            display: block;
+        }
+        .top-head {
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(135deg, #ff6700, #ff8c42);
+            display: flex;
+            align-items: center;
+            padding-left: 16px;
+            color: #fff;
+            font-size: 17px;
+            font-weight: 500;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(255, 103, 0, 0.2);
+        }
+        .content-wrapper {
+            padding-top: 50px;
+            padding-bottom: 60px;
+            min-height: 100vh;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+        .press-active:active {
+            opacity: 0.92;
+            transform: scale(0.99);
+        }
+        .footer-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 58px;
+            background: #fff;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border-top: 1px solid #eeeeee;
+            z-index: 100;
+        }
+        .nav-item {
+            text-align: center;
+            padding-top: 6px;
+            color: #666;
+            text-decoration: none;
+        }
+        .nav-ico {
+            font-size: 22px;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .nav-name {
+            font-size: 11px;
+        }
+        .nav-item.active .nav-ico,
+        .nav-item.active .nav-name {
+            color: #ff6700;
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .login-wrap, .register-wrap {
+            padding: 24px 16px;
+        }
+        .login-card {
+            padding: 30px 24px;
+            margin-top: 40px;
+        }
+        .login-logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .logo-ico {
+            font-size: 64px;
+            color: #ff6700;
+            margin-bottom: 12px;
+        }
+        .logo-text {
+            font-size: 22px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 6px;
+        }
+        .logo-desc {
+            font-size: 13px;
+            color: #999;
+        }
+        .form-item {
+            margin-bottom: 20px;
+        }
+        .form-item label {
+            display: block;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        .form-input {
+            width: 100%;
+            height: 48px;
+            border: 1px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 0 16px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #fafafa;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        .form-input:focus {
+            border-color: #ff6700;
+            background: #fff;
+        }
+        .btn-main {
+            width: 100%;
+            height: 48px;
+            background: linear-gradient(135deg, #ff6700, #ff8c42);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+        .btn-main:active {
+            transform: scale(0.98);
+            opacity: 0.95;
+        }
+        .switch-tip {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 14px;
+            color: #666;
+        }
+        .switch-tip .link {
+            color: #ff6700;
+            cursor: pointer;
+        }
+        .wechat-btn {
+            width: 100%;
+            height: 48px;
+            background: #07C160;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.2s;
+        }
+        .wechat-btn:active {
+            transform: scale(0.98);
+            opacity: 0.95;
+        }
+
+        .user-top {
+            width: 100%;
+            height: 190px;
+            background: linear-gradient(135deg, #ff6700, #ff8c42);
+            padding: 30px 20px;
+            color: #fff;
+            position: relative;
+        }
+        .user-avatar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .avatar {
+            width: 74px;
+            height: 74px;
+            border-radius: 50%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            color: #ff6700;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+        }
+        .username {
+            font-size: 21px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .welcome-txt {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        .user-menu-card {
+            margin: -45px 16px 20px;
+            padding: 8px 0;
+            position: relative;
+            z-index: 2;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+        }
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+        .menu-ico {
+            font-size: 22px;
+            width: 32px;
+            text-align: center;
+            margin-right: 14px;
+            color: #666;
+        }
+        .menu-text {
+            flex: 1;
+            font-size: 15px;
+            color: #333;
+        }
+        .arrow {
+            color: #cccccc;
+            font-size: 16px;
+        }
+        .logout-item .menu-ico,
+        .logout-item .menu-text {
+            color: #f44336;
+        }
+
+        .modal-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-box {
+            width: 82%;
+            max-width: 320px;
+            background: #fff;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+        .modal-txt {
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 15px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .modal-btn-group {
+            display: flex;
+            border-top: 1px solid #f0f0f0;
+        }
+        .modal-btn {
+            flex: 1;
+            height: 50px;
+            line-height: 50px;
+            text-align: center;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .modal-btn.cancel {
+            color: #666;
+            border-right: 1px solid #f0f0f0;
+        }
+        .modal-btn.confirm {
+            color: #f44336;
+            font-weight: 500;
+        }
+
+        .search-box {
+            margin: 10px 15px;
+            height: 36px;
+            background:#fff;
+            border-radius:18px;
+            display:flex;
+            align-items:center;
+            padding:0 15px;
+        }
+        .search-box input {
+            flex:1;
+            border:none;
+            outline:none;
+            font-size:14px;
+            color:#333;
+            background:transparent;
+        }
+        .banner {
+            width:94%;
+            margin:12px auto;
+            height:160px;
+            border-radius:12px;
+            background: #ff8c42;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:#fff;
+            font-size:18px;
+        }
+        .cate-box {
+            width:96%;
+            margin:0 auto;
+            background:#fff;
+            border-radius:10px;
+            padding:15px;
+        }
+        .cate-row {
+            display:grid;
+            grid-template-columns: repeat(5,1fr);
+            text-align:center;
+        }
+        .cate-item {
+            margin-bottom:12px;
+            cursor:pointer;
+            transition:transform 0.2s;
+            padding:5px 0;
+        }
+        .cate-item:active {
+            transform:translateY(-2px);
+            opacity:0.8;
+        }
+        .cate-icon {
+            width:45px;
+            height:45px;
+            border-radius:50%;
+            margin:0 auto 6px;
+            background:#ffebe0;
+            line-height:45px;
+            color:#ff6700;
+            font-size:20px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        .cate-text {
+            font-size:12px;
+            color:#333;
+        }
+        .master-box {
+            width:96%;
+            margin:15px auto;
+            background:#fff;
+            border-radius:10px;
+            padding:15px;
+        }
+        .title-txt {
+            font-size:16px;
+            font-weight:bold;
+            margin-bottom:12px;
+            color:#222;
+        }
+        .master-list {
+            border-top:#eee 1px solid;
+            padding-top:10px;
+        }
+        .master-card {
+            display:flex;
+            padding:10px 0;
+            border-bottom:1px solid #eee;
+            cursor:pointer;
+            min-height:80px;
+        }
+        .master-img {
+            width:60px;
+            height:60px;
+            border-radius:50%;
+            background:#ddd center/cover;
+        }
+        .master-info {
+            flex:1;
+            padding-left:12px;
+        }
+        .name {
+            font-size:14px;
+            font-weight:550;
+        }
+        .job {
+            font-size:12px;
+            color:#666;
+            margin:3px 0;
+        }
+        .distance {
+            font-size:11px;
+            color:#999;
+        }
+        .order-btn {
+            width:70px;
+            height:28px;
+            background:#ff6700;
+            color:#fff;
+            border:none;
+            border-radius:14px;
+            font-size:12px;
+            cursor:pointer;
+        }
+        .order-btn:disabled {
+            background:#ccc !important;
+            cursor:not-allowed;
+            opacity:0.8;
+        }
+        .classify-container {
+            width:96%;
+            margin:15px auto;
+        }
+        .big-title {
+            font-size:16px;
+            font-weight:bold;
+            margin:10px 0;
+            color:#222;
+        }
+        .all-list {
+            display:grid;
+            grid-template-columns: repeat(3,1fr);
+            gap:12px;
+        }
+        .service-card {
+            background:#fff;
+            border-radius:10px;
+            padding:18px 10px;
+            text-align:center;
+            cursor:pointer;
+            transition:all 0.3s;
+            border:2px solid transparent;
+        }
+        .service-card:active {
+            border-color:#ff6700;
+            box-shadow:0 5px 15px rgba(255,103,0,0.1);
+            transform:translateY(-3px);
+        }
+        .ico {
+            font-size:30px;
+            margin-bottom:8px;
+        }
+        .s-name {
+            font-size:13px;
+            color:#333;
+        }
+        .box {
+            margin:15px;
+        }
+        .item {
+            background:#fff;
+            border-radius:10px;
+            padding:15px;
+            margin-bottom:12px;
+        }
+        .title {
+            font-size:15px;
+            margin-bottom:8px;
+            color:#222;
+        }
+        input,textarea {
+            width:100%;
+            border:1px solid #ddd;
+            border-radius:6px;
+            padding:10px;
+            font-size:14px;
+            outline:none;
+            -webkit-user-select:text;
+            user-select:text;
+        }
+        input:focus,textarea:focus {
+            border-color:#ff6700;
+        }
+        .submit-btn {
+            width:100%;
+            height:46px;
+            background:#ff6700;
+            color:#fff;
+            border:none;
+            border-radius:8px;
+            font-size:16px;
+            cursor:pointer;
+            transition:background 0.3s;
+        }
+        .submit-btn:active {
+            background:#ff5500;
+            transform:scale(0.98);
+        }
+        .tab-menu {
+            display:flex;
+            background:#fff;
+            margin-top:10px;
+        }
+        .tab-item {
+            flex:1;
+            text-align:center;
+            line-height:40px;
+            font-size:14px;
+            color:#666;
+            cursor:pointer;
+        }
+        .tab-item.active {
+            color:#ff6700;
+            border-bottom:2px solid #ff6700;
+        }
+        .order-card {
+            background:#fff;
+            margin:12px;
+            border-radius:10px;
+            padding:15px;
+            border-left:4px solid #ff6700;
+        }
+        .order-type {
+            font-size:15px;
+            font-weight:bold;
+        }
+        .order-addr {
+            font-size:12px;
+            color:#777;
+            margin:6px 0;
+        }
+        .order-status {
+            font-size:13px;
+            color:orange;
+            text-align:right;
+        }
+        .btn-box {
+            display:flex;
+            gap:10px;
+            margin-top:10px;
+        }
+        .btn1 {
+            border:1px solid #ccc;
+            padding:5px 12px;
+            border-radius:15px;
+            font-size:12px;
+            cursor:pointer;
+            background:#fff;
+        }
+        .btn2 {
+            background:#ff6700;
+            color:#fff;
+            padding:5px 12px;
+            border-radius:15px;
+            font-size:12px;
+            border:none;
+            cursor:pointer;
+        }
+        .masters-for-service {
+            width:96%;
+            margin:15px auto;
+            background:#fff;
+            border-radius:10px;
+            padding:15px;
+        }
+        .service-header {
+            display:flex;
+            align-items:center;
+            margin-bottom:15px;
+            padding-bottom:10px;
+            border-bottom:1px solid #eee;
+        }
+        .back-btn {
+            width:30px;
+            height:30px;
+            border-radius:50%;
+            border:1px solid #ddd;
+            background:#fff;
+            margin-right:10px;
+            cursor:pointer;
+            font-size:16px;
+        }
+        .service-title {
+            font-size:18px;
+            font-weight:bold;
+            color:#222;
+        }
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 9999;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="login" class="page-container active">
+        <div class="top-head">用户登录</div>
+        <div class="content-wrapper">
+            <div class="login-wrap">
+                <div class="login-card card">
+                    <div class="login-logo">
+                        <div class="logo-ico"></div>
+                        <div class="logo-text">同城匠师傅</div>
+                        <div class="logo-desc">本地上门维修 · 省心又快捷</div>
+                    </div>
+                    <div class="form-item">
+                        <label>账号</label>
+                        <input class="form-input" type="text" id="login-username" placeholder="请输入登录账号">
+                    </div>
+                    <div class="form-item">
+                        <label>密码</label>
+                        <input class="form-input" type="password" id="login-pwd" placeholder="请输入登录密码">
+                    </div>
+                    <button class="btn-main" id="login-btn">立即登录</button>
+                    <button class="wechat-btn" id="wechat-login-btn">微信一键登录</button>
+                    <div class="switch-tip">
+                        未有账号？<span class="link" id="to-register">立即注册</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="register" class="page-container">
+        <div class="top-head">账号注册</div>
+        <div class="content-wrapper">
+            <div class="register-wrap">
+                <div class="login-card card">
+                    <div class="login-logo">
+                        <div class="logo-ico"></div>
+                        <div class="logo-text">新用户注册</div>
+                        <div class="logo-desc">注册账号，预约周边师傅</div>
+                    </div>
+                    <div class="form-item">
+                        <label>设置账号</label>
+                        <input class="form-input" type="text" id="reg-username" placeholder="自定义登录账号">
+                    </div>
+                    <div class="form-item">
+                        <label>设置密码</label>
+                        <input class="form-input" type="password" id="reg-pwd" placeholder="密码不少于6位">
+                    </div>
+                    <div class="form-item">
+                        <label>确认密码</label>
+                        <input class="form-input" type="password" id="reg-pwd2" placeholder="再次输入密码">
+                    </div>
+                    <button class="btn-main" id="register-btn">完成注册</button>
+                    <div class="switch-tip">
+                        已有账号？<span class="link" id="to-login">返回登录</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="home" class="page-container">
+        <div class="top-head">同城匠师傅</div>
+        <div class="content-wrapper">
+            <div class="search-box">
+                <input type="text" placeholder="搜索维修、安装、家政师傅">
+            </div>
+            <div class="banner">同城上门维修服务，随叫随到</div>
+            <div class="cate-box">
+                <div class="cate-row">
+                    <div class="cate-item" data-service="水电维修">
+                        <div class="cate-icon"></div>
+                        <div class="cate-text">水电维修</div>
+                    </div>
+                    <div class="cate-item" data-service="管道疏通">
+                        <div class="cate-icon"></div>
+                        <div class="cate-text">管道疏通</div>
+                    </div>
+                    <div class="cate-item" data-service="家政保洁">
+                        <div class="cate-icon"></div>
+                        <div class="cate-text">家政保洁</div>
+                    </div>
+                    <div class="cate-item" data-service="门窗维修">
+                        <div class="cate-icon"></div>
+                        <div class="cate-text">门窗维修</div>
+                    </div>
+                    <div class="cate-item" data-service="搬家运输">
+                        <div class="cate-icon"></div>
+                        <div class="cate-text">搬家运输</div>
+                    </div>
+                    <div class="cate-item" data-service="防水补漏">
+                        <div class="cate-icon">️</div>
+                        <div class="cate-text">防水补漏</div>
+                    </div>
+                    <div class="cate-item" data-service="家电维修">
+                        <div class="cate-icon"></div>
+                        <div class="cate-text">家电维修</div>
+                    </div>
+                    <div class="cate-item" data-service="开锁换锁">
+                        <div class="cate-icon"></div>
+                        <div class="cate-text">开锁换锁</div>
+                    </div>
+                    <div class="cate-item" data-service="家具安装">
+                        <div class="cate-icon">️</div>
+                        <div class="cate-text">家具安装</div>
+                    </div>
+                    <div class="cate-item" data-service="更多服务">
+                        <div class="cate-icon">➕</div>
+                        <div class="cate-text">更多服务</div>
+                    </div>
+                </div>
+            </div>
+            <div class="master-box">
+                <div class="title-txt">附近在岗匠师傅</div>
+                <div class="master-list">
+                    <div class="master-card" data-master="李师傅" data-service-type="水电维修">
+                        <div class="master-img"></div>
+                        <div class="master-info">
+                            <div class="name">李师傅</div>
+                            <div class="job">专业水电、漏水维修</div>
+                            <div class="distance">距离你 1.2km｜4.9高分好评</div>
+                        </div>
+                        <button class="order-btn">立即预约</button>
+                    </div>
+                    <div class="master-card" data-master="王师傅" data-service-type="管道疏通">
+                        <div class="master-img"></div>
+                        <div class="master-info">
+                            <div class="name">王师傅</div>
+                            <div class="job">疏通下水道、马桶维修</div>
+                            <div class="distance">距离你 2.0km｜资深老师傅</div>
+                        </div>
+                        <button class="order-btn">立即预约</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="fenlei" class="page-container">
+        <div class="top-head">全部服务分类</div>
+        <div class="content-wrapper">
+            <div class="classify-container">
+                <div class="big-title">居家维修服务</div>
+                <div class="all-list">
+                    <div class="service-card" data-service="水电维修">
+                        <div class="ico"></div>
+                        <div class="s-name">水电维修</div>
+                    </div>
+                    <div class="service-card" data-service="管道疏通">
+                        <div class="ico"></div>
+                        <div class="s-name">管道疏通</div>
+                    </div>
+                    <div class="service-card" data-service="防水补漏">
+                        <div class="ico"></div>
+                        <div class="s-name">防水补漏</div>
+                    </div>
+                    <div class="service-card" data-service="家电维修">
+                        <div class="ico"></div>
+                        <div class="s-name">家电维修</div>
+                    </div>
+                    <div class="service-card" data-service="门窗维修">
+                        <div class="ico"></div>
+                        <div class="s-name">门窗维修</div>
+                    </div>
+                    <div class="service-card" data-service="开锁换锁">
+                        <div class="ico"></div>
+                        <div class="s-name">开锁换锁</div>
+                    </div>
+                </div>
+                <div class="big-title">生活便民服务</div>
+                <div class="all-list">
+                    <div class="service-card" data-service="家政保洁">
+                        <div class="ico"></div>
+                        <div class="s-name">家政保洁</div>
+                    </div>
+                    <div class="service-card" data-service="搬家搬运">
+                        <div class="ico"></div>
+                        <div class="s-name">搬家搬运</div>
+                    </div>
+                    <div class="service-card" data-service="家具安装">
+                        <div class="ico">️</div>
+                        <div class="s-name">家具安装</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="fabu" class="page-container">
+        <div class="top-head">发布维修工单</div>
+        <div class="content-wrapper">
+            <div class="box">
+                <div class="item">
+                    <div class="title">选择维修类型</div>
+                    <input class="form-input" type="text" id="service-type" placeholder="例如：水电维修、管道疏通">
+                </div>
+                <div class="item">
+                    <div class="title">详细问题描述</div>
+                    <textarea id="problem-desc" rows="4" placeholder="详细讲清楚遇到咩故障，方便师傅了解"></textarea>
+                </div>
+                <div class="item">
+                    <div class="title">填写上门地址</div>
+                    <input class="form-input" type="text" id="address" placeholder="输入你嘅详细居住地址">
+                </div>
+                <div class="item">
+                    <div class="title">联系手机号码</div>
+                    <input class="form-input" type="text" id="phone" placeholder="预留电话号码方便师傅联系" oninput="value=value.replace(/[^\d]/g,'')">
+                </div>
+                <div style="margin-top:20px;">
+                    <button class="submit-btn" id="submit-order">立即发布订单，等待师傅接单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dingdan" class="page-container">
+        <div class="top-head">我的维修订单</div>
+        <div class="content-wrapper">
+            <div class="tab-menu">
+                <div class="tab-item active" data-tab="all">全部订单</div>
+                <div class="tab-item" data-tab="pending">待接单</div>
+                <div class="tab-item" data-tab="in-progress">维修中</div>
+                <div class="tab-item" data-tab="completed">已完成</div>
+            </div>
+            <div id="order-list">
+                <div class="order-card" data-status="pending">
+                    <div style="display:flex;justify-content:space-between;">
+                        <div class="order-type">水管疏通维修</div>
+                        <div class="order-status">等待师傅接单</div>
+                    </div>
+                    <div class="order-addr">上门地址：本地城区</div>
+                    <div class="btn-box">
+                        <button class="btn1 cancel-order">取消订单</button>
+                        <button class="btn2 view-detail">查看详情</button>
+                    </div>
+                </div>
+                <div class="order-card" data-status="in-progress">
+                    <div style="display:flex;justify-content:space-between;">
+                        <div class="order-type">家用电路检修</div>
+                        <div class="order-status" style="color:green">正在服务中</div>
+                    </div>
+                    <div class="order-addr">上门地址：城东住宅区</div>
+                    <div class="btn-box">
+                        <button class="btn1 contact-master">联系师傅</button>
+                        <button class="btn2 confirm-complete">确认完工</button>
+                    </div>
+                </div>
+                <div class="order-card" data-status="completed">
+                    <div class="order-type">门窗更换维修</div>
+                    <div class="order-status" style="color:#999">已经完成</div>
+                    <div class="order-addr">上门地址：城西小区</div>
+                    <div class="btn-box">
+                        <button class="btn1 reorder">再次下单</button>
+                        <button class="btn2 add-review">发表评价</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="user" class="page-container">
+        <div class="top-head">个人中心</div>
+        <div class="content-wrapper">
+            <div class="user-top">
+                <div class="user-avatar-wrap">
+                    <div class="avatar"></div>
+                    <div class="user-info">
+                        <div class="username" id="show-username">本地用户</div>
+                        <div class="welcome-txt">很高兴为您服务</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card user-menu-card">
+                <div class="menu-item menu-order press-active">
+                    <div class="menu-ico"></div>
+                    <div class="menu-text">我的全部工单</div>
+                    <div class="arrow">></div>
+                </div>
+                <div class="menu-item press-active">
+                    <div class="menu-ico">⭐</div>
+                    <div class="menu-text">我的收藏服务</div>
+                    <div class="arrow">></div>
+                </div>
+                <div class="menu-item press-active">
+                    <div class="menu-ico"></div>
+                    <div class="menu-text">消息通知中心</div>
+                    <div class="arrow">></div>
+                </div>
+                <div class="menu-item press-active">
+                    <div class="menu-ico">️</div>
+                    <div class="menu-text">隐私安全设置</div>
+                    <div class="arrow">></div>
+                </div>
+                <div class="menu-item press-active">
+                    <div class="menu-ico"></div>
+                    <div class="menu-text">客服联系帮助</div>
+                    <div class="arrow">></div>
+                </div>
+                <div class="menu-item logout-item press-active" id="logout-btn">
+                    <div class="menu-ico"></div>
+                    <div class="menu-text">退出登录</div>
+                    <div class="arrow">></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="masters" class="page-container">
+        <div class="top-head">师傅列表</div>
+        <div class="content-wrapper">
+            <div class="masters-for-service">
+                <div class="service-header">
+                    <button class="back-btn" id="back-to-service">←</button>
+                    <div class="service-title" id="current-service">水电维修师傅</div>
+                </div>
+                <div class="master-list" id="service-masters">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-mask" id="logout-modal">
+        <div class="modal-box">
+            <div class="modal-txt">确定要退出当前登录账号吗？</div>
+            <div class="modal-btn-group">
+                <div class="modal-btn cancel" id="modal-cancel">取消</div>
+                <div class="modal-btn confirm" id="modal-confirm">退出</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="footer-nav">
+        <a href="#" class="nav-item" data-page="home">
+            <div class="nav-ico"></div>
+            <div class="nav-name">首页</div>
+        </a>
+        <a href="#" class="nav-item" data-page="fenlei">
+            <div class="nav-ico"></div>
+            <div class="nav-name">服务分类</div>
+        </a>
+        <a href="#" class="nav-item" data-page="fabu">
+            <div class="nav-ico">✍️</div>
+            <div class="nav-name">发布工单</div>
+        </a>
+        <a href="#" class="nav-item" data-page="user">
+            <div class="nav-ico"></div>
+            <div class="nav-name">个人中心</div>
+        </a>
+    </div>
+
+    <script>
+        // ==================== 这里就是你要改的 Supabase URL 和 Key ====================
+        const SUPABASE_URL = "https://iguxcmtpjgzehknoiczp.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_EH5tShoe5dfCfmIBliF18Q_a24mWnAO";
+        // ==============================================================================
+
+        // 初始化 Supabase
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const STORAGE_USER = 'jiangfu_user';
+            const STORAGE_ORDER = 'jiangfu_order';
+            let currentUser = null;
+
+            function showToast(text) {
+                const toast = document.getElementById('toast');
+                toast.innerText = text;
+                toast.style.display = 'block';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 1500);
+            }
+
+            function showPage(pageId) {
+                const pages = document.querySelectorAll('.page-container');
+                pages.forEach(page => {
+                    page.classList.remove('active');
+                });
+                document.getElementById(pageId).classList.add('active');
+            }
+
+            function initLocalData() {
+                let userStr = localStorage.getItem(STORAGE_USER);
+                if(userStr){
+                    currentUser = JSON.parse(userStr);
+                }
+                let orderStr = localStorage.getItem(STORAGE_ORDER);
+                if(orderStr){
+                    let orderArr = JSON.parse(orderStr);
+                    const orderList = document.querySelector('#order-list');
+                    orderList.innerHTML = '';
+                    orderArr.forEach(item => {
+                        let card = document.createElement('div');
+                        card.className = 'order-card';
+                        card.dataset.status = item.status;
+                        let statusText = '';
+                        let statusColor = '';
+                        let btnHtml = '';
+                        if(item.status === 'pending'){
+                            statusText = '等待师傅接单';
+                            btnHtml = `<button class="btn1 cancel-order">取消订单</button><button class="btn2 view-detail">查看详情</button>`;
+                        }else if(item.status === 'in-progress'){
+                            statusText = '正在服务中';
+                            statusColor = 'color:green';
+                            btnHtml = `<button class="btn1 contact-master">联系师傅</button><button class="btn2 confirm-complete">确认完工</button>`;
+                        }else{
+                            statusText = '已经完成';
+                            statusColor = 'color:#999';
+                            btnHtml = `<button class="btn1 reorder">再次下单</button><button class="btn2 add-review">发表评价</button>`;
+                        }
+                        card.innerHTML = `
+                            <div style="display:flex;justify-content:space-between;">
+                                <div class="order-type">${escapeHtml(item.type)}</div>
+                                <div class="order-status" style="${statusColor}">${statusText}</div>
+                            </div>
+                            <div class="order-addr">上门地址：${escapeHtml(item.addr)}</div>
+                            <div class="btn-box">${btnHtml}</div>
+                        `;
+                        orderList.appendChild(card);
+                    });
+                }
+            }
+
+            function escapeHtml(str) {
+                if(!str) return '';
+                return str.replace(/[&<>"']/g, char => {
+                    const map = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+                    return map[char];
+                });
+            }
+
+            function saveOrderToLocal(){
+                const cards = document.querySelectorAll('.order-card');
+                let orderArr = [];
+                cards.forEach(card=>{
+                    let type = card.querySelector('.order-type').innerText;
+                    let addr = card.querySelector('.order-addr').innerText.replace('上门地址：','');
+                    let status = card.dataset.status;
+                    orderArr.push({type, addr, status});
+                });
+                localStorage.setItem(STORAGE_ORDER, JSON.stringify(orderArr));
+            }
+
+            function checkLogin(){
+                if(!currentUser){
+                    showPage('login');
+                    showToast('请先登录账号');
+                    return false;
+                }
+                return true;
+            }
+
+            document.getElementById('to-register').addEventListener('click',()=>{
+                showPage('register');
+            });
+            document.getElementById('to-login').addEventListener('click',()=>{
+                showPage('login');
+            });
+
+            document.getElementById('register-btn').addEventListener('click',async ()=>{
+                let un = document.getElementById('reg-username').value.trim();
+                let pwd = document.getElementById('reg-pwd').value.trim();
+                let pwd2 = document.getElementById('reg-pwd2').value.trim();
+
+                if(!un || !pwd || !pwd2){
+                    showToast('请填晒所有资料');
+                    return;
+                }
+                if(pwd.length < 6){
+                    showToast('密码长度不能少于6位');
+                    return;
+                }
+                if(pwd !== pwd2){
+                    showToast('两次密码唔一致');
+                    return;
+                }
+                try {
+                    // 用 Supabase 注册用户
+                    const { data, error } = await supabase.auth.signUp({
+                        email: `${un}@example.com`,
+                        password: pwd,
+                        options: {
+                            data: { username: un }
+                        }
+                    });
+                    if (error) throw error;
+                    showToast('注册成功，请登录');
+                    showPage('login');
+                    document.getElementById('reg-username').value = '';
+                    document.getElementById('reg-pwd').value = '';
+                    document.getElementById('reg-pwd2').value = '';
+                } catch (err) {
+                    showToast('注册失败：' + err.message);
+                }
+            });
+
+            document.getElementById('login-btn').addEventListener('click',async ()=>{
+                let un = document.getElementById('login-username').value.trim();
+                let pwd = document.getElementById('login-pwd').value.trim();
+                if(!un || !pwd){
+                    showToast('请输入账号密码');
+                    return;
+                }
+                try {
+                    // 用 Supabase 登录用户
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email: `${un}@example.com`,
+                        password: pwd
+                    });
+                    if (error) throw error;
+                    currentUser = { username: un };
+                    localStorage.setItem(STORAGE_USER, JSON.stringify(currentUser));
+                    showToast('登录成功');
+                    showPage('home');
+                    const navItems = document.querySelectorAll('.nav-item');
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    document.querySelector('[data-page="home"]').classList.add('active');
+                    document.getElementById('show-username').innerText = currentUser.username;
+                } catch (err) {
+                    showToast('登录失败：' + err.message);
+                }
+            });
+
+            // 微信一键登录（Supabase 社交登录）
+            document.getElementById('wechat-login-btn').addEventListener('click',async ()=>{
+                try {
+                    const { data, error } = await supabase.auth.signInWithOAuth({
+                        provider: 'wechat',
+                        options: {
+                            redirectTo: window.location.origin
+                        }
+                    });
+                    if (error) throw error;
+                    showToast('正在跳转微信授权...');
+                } catch (err) {
+                    showToast('微信登录暂未配置，请使用账号登录');
+                }
+            });
+
+            const logoutModal = document.getElementById('logout-modal');
+            const modalCancel = document.getElementById('modal-cancel');
+            const modalConfirm = document.getElementById('modal-confirm');
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                logoutModal.style.display = 'flex';
+            });
+            modalCancel.addEventListener('click', () => {
+                logoutModal.style.display = 'none';
+            });
+            modalConfirm.addEventListener('click',async () => {
+                await supabase.auth.signOut();
+                currentUser = null;
+                localStorage.removeItem(STORAGE_USER);
+                logoutModal.style.display = 'none';
+                showToast('已退出登录');
+                showPage('login');
+                const navItems = document.querySelectorAll('.nav-item');
+                navItems.forEach(nav => nav.classList.remove('active'));
+            });
+
+            document.querySelector('[data-page="user"]').addEventListener('click', function(){
+                if(currentUser){
+                    document.getElementById('show-username').innerText = currentUser.username;
+                }
+            });
+
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const pageId = this.dataset.page;
+                    if(!checkLogin()) return;
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    showPage(pageId);
+                });
+            });
+
+            document.getElementById('submit-order').addEventListener('click', function() {
+                const serviceType = document.getElementById('service-type').value.trim();
+                const problemDesc = document.getElementById('problem-desc').value.trim();
+                const address = document.getElementById('address').value.trim();
+                let phone = document.getElementById('phone').value.trim();
+                phone = phone.replace(/\s/g,'');
+
+                if (!serviceType || !problemDesc || !address || !phone) {
+                    showToast('请填晒所有资料！');
+                    return;
+                }
+                if (!/^1[3-9]\d{9}$/.test(phone)) {
+                    showToast('手机号码格式唔正确！');
+                    return;
+                }
+                const orderList = document.getElementById('order-list');
+                let newCard = document.createElement('div');
+                newCard.className = 'order-card';
+                newCard.dataset.status = 'pending';
+                newCard.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;">
+                        <div class="order-type">${escapeHtml(serviceType)}</div>
+                        <div class="order-status">等待师傅接单</div>
+                    </div>
+                    <div class="order-addr">上门地址：${escapeHtml(address)}</div>
+                    <div class="btn-box">
+                        <button class="btn1 cancel-order">取消订单</button>
+                        <button class="btn2 view-detail">查看详情</button>
+                    </div>
+                `;
+                orderList.prepend(newCard);
+                saveOrderToLocal();
+                showToast('工单发布成功！');
+                document.getElementById('service-type').value = '';
+                document.getElementById('problem-desc').value = '';
+                document.getElementById('address').value = '';
+                document.getElementById('phone').value = '';
+                showPage('dingdan');
+                navItems.forEach(nav => nav.classList.remove('active'));
+                document.querySelector('[data-page="fabu"]').classList.remove('active');
+            });
+
+            document.addEventListener('click', function(e) {
+                const target = e.target;
+                if(target.classList.contains('cancel-order')){
+                    target.closest('.order-card').remove();
+                    showToast('订单已取消');
+                    saveOrderToLocal();
+                }
+                if(target.classList.contains('confirm-complete')){
+                    const card = target.closest('.order-card');
+                    card.dataset.status = 'completed';
+                    const statusDom = card.querySelector('.order-status');
+                    statusDom.innerText = '已经完成';
+                    statusDom.style.color = '#999';
+                    const btnBox = card.querySelector('.btn-box');
+                    btnBox.innerHTML = `
+                        <button class="btn1 reorder">再次下单</button>
+                        <button class="btn2 add-review">发表评价</button>
+                    `;
+                    showToast('确认完工成功');
+                    saveOrderToLocal();
+                }
+                if(target.classList.contains('view-detail')){
+                    showToast('订单详情功能开发中');
+                }
+                if(target.classList.contains('contact-master')){
+                    showToast('联系师傅功能开发中');
+                }
+                if(target.classList.contains('reorder')){
+                    showToast('已进入再次下单流程');
+                    showPage('fabu');
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    document.querySelector('[data-page="fabu"]').classList.add('active');
+                }
+                if(target.classList.contains('add-review')){
+                    showToast('评价功能开发中');
+                }
+            });
+
+            document.querySelectorAll('.cate-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    let service = this.dataset.service;
+                    if(service === '更多服务'){
+                        showPage('fenlei');
+                        navItems.forEach(nav => nav.classList.remove('active'));
+                        document.querySelector('[data-page="fenlei"]').classList.add('active');
+                    }else{
+                        goMasterList(service);
+                    }
+                });
+            });
+            document.querySelectorAll('.service-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    goMasterList(this.dataset.service);
+                });
+            });
+            document.getElementById('back-to-service').addEventListener('click',()=>{
+                showPage('fenlei');
+                navItems.forEach(nav => nav.classList.remove('active'));
+                document.querySelector('[data-page="fenlei"]').classList.add('active');
+            });
+
+            function goMasterList(serviceName){
+                const titleDom = document.getElementById('current-service');
+                titleDom.innerText = serviceName + '师傅';
+                const masterWrap = document.getElementById('service-masters');
+                masterWrap.innerHTML = '';
+                const mockMaster = [
+                    {name:'陈师傅',desc:'从业10年，技术娴熟',distance:'1.5km'},
+                    {name:'张师傅',desc:'上门速度快，服务周到',distance:'2.2km'},
+                    {name:'刘师傅',desc:'价格实惠，售后保障',distance:'2.8km'}
+                ];
+                mockMaster.forEach(m=>{
+                    let html = `
+                        <div class="master-card" data-master="${m.name}" data-service-type="${serviceName}">
+                            <div class="master-img"></div>
+                            <div class="master-info">
+                                <div class="name">${m.name}</div>
+                                <div class="job">${m.desc}</div>
+                                <div class="distance">距离你 ${m.distance}</div>
+                            </div>
+                            <button class="order-btn">立即预约</button>
+                        </div>
+                    `;
+                    masterWrap.innerHTML += html;
+                });
+                showPage('masters');
+            }
+
+            document.addEventListener('click', function(e){
+                if(!e.target.classList.contains('order-btn')) return;
+                let card = e.target.closest('.master-card');
+                if(!card) return;
+                let serviceName = card.dataset.serviceType;
+                document.getElementById('service-type').value = serviceName;
+                showPage('fabu');
+                navItems.forEach(nav => nav.classList.remove('active'));
+                document.querySelector('[data-page="fabu"]').classList.add('active');
+            });
+
+            initLocalData();
+        });
+    </script>
+</body>
+</html>
